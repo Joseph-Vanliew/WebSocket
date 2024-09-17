@@ -3,13 +3,13 @@ import java.net.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
-    private static AtomicInteger clientCounter = new AtomicInteger(0);  // To keep track of client numbers
+    private static AtomicInteger clientCounter = new AtomicInteger(0);  // client number tracking
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(7689)) {
             System.out.println("The server is running...");
 
-            // Continuously listen for client connections
+            // Continuously listen for a potential client
             while (true) {
                 Socket clientSocket = serverSocket.accept();  // Accept client connection
                 int clientNumber = clientCounter.incrementAndGet();  // Assign a unique client number
@@ -50,7 +50,7 @@ class ClientHandler implements Runnable {
                 if ("time".equalsIgnoreCase(clientInput)) {
                     out.println(new java.util.Date().toString());  // Send current date and time
                 } else {
-                    out.println(clientInput.toUpperCase());  // Send capitalized string
+                    out.println(clientInput.toUpperCase());  // response with capitalized string
                 }
             }
             System.out.println("Client #" + clientNumber + " disconnected.");
