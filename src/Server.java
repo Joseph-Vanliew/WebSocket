@@ -1,41 +1,68 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Date;
+import java.io.*;
+import java.net.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
-    public static void main(String[] args) throws IOException {
+    private static AtomicInteger clientCounter = new AtomicInteger(0);  // To keep track of client numbers
+
+    public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(7689)) {
-            InetAddress inetAddress = InetAddress.getLocalHost();
-            System.out.println("The Server is running on IP: " + inetAddress.getHostAddress());
+            System.out.println("The server is running...");
 
-
+            // Continuously listen for client connections
             while (true) {
-                // Wait for a client to connect
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected");
+                Socket clientSocket = serverSocket.accept();  // Accept client connection
+                int clientNumber = clientCounter.incrementAndGet();  // Assign a unique client number
+                System.out.println("Client #" + clientNumber + " connected.");
 
-
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                out.println(new Date());
-
-                // Receive the acknowledgment from the client
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                String clientMessage = in.readLine();
-                if ("Received".equals(clientMessage)) {
-                    System.out.println("Message from client: " + clientMessage);
-                }
-
-                // Terminate connection
-                clientSocket.close();
-                System.out.println("Client disconnected");
+                // Create a new thread to handle this client's requests
+                ClientHandler clientHandler = new ClientHandler(clientSocket, clientNumber);
+                new Thread(clientHandler).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
+
+// Here I'm handeling multiple client requests...
+class ClientHandler implements Runnable {
+    private Socket clientSocket;
+    private int clientNumber;
+
+    public ClientHandler(Socket clientSocket, int clientNumber) {
+        this.clientSocket = clientSocket;
+        this.clientNumber = clientNumber;
+    }
+
+    @Override
+    public void run() {
+        try (
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+        ) {
+
+            out.println("Hello, you are client #" + clientNumber);
+
+            String clientInput;
+            // Keep listening for client input until an empty string is entered
+            while ((clientInput = in.readLine()) != null && !clientInput.isEmpty()) {
+                if ("time".equalsIgnoreCase(clientInput)) {
+                    out.println(new java.util.Date().toString());  // Send current date and time
+                } else {
+                    out.println(clientInput.toUpperCase());  // Send capitalized string
+                }
+            }
+            System.out.println("Client #" + clientNumber + " disconnected.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
