@@ -15,13 +15,12 @@ public class Client {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            
             System.out.println(in.readLine());
 
             String userInput;
             // Continuously send input to the server until the user enters an empty string
             while (true) {
-                System.out.print("Enter a string (or send an empty message to disconnect): ");
+                System.out.print("Enter 'time' for the time or send an empty message to disconnect: ");
                 userInput = scanner.nextLine();
 
                 if (userInput.isEmpty()) {

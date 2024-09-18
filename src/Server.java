@@ -3,7 +3,7 @@ import java.net.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
-    private static AtomicInteger clientCounter = new AtomicInteger(0);  // client number tracking
+    private static AtomicInteger clientCounter = new AtomicInteger(0);  // I'm using an atomic integer for client number tracking so we're 'thread safe' and avoiding race conditions.
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(7689)) {
@@ -25,7 +25,7 @@ public class Server {
     }
 }
 
-// Here I'm handeling multiple client requests...
+// Here I'm handling multiple client requests...
 class ClientHandler implements Runnable {
     private Socket clientSocket;
     private int clientNumber;
@@ -45,12 +45,12 @@ class ClientHandler implements Runnable {
             out.println("Hello, you are client #" + clientNumber);
 
             String clientInput;
-            // Keep listening for client input until an empty string is entered
+            //listening for client input until an empty string is entered
             while ((clientInput = in.readLine()) != null && !clientInput.isEmpty()) {
                 if ("time".equalsIgnoreCase(clientInput)) {
                     out.println(new java.util.Date().toString());  // Send current date and time
                 } else {
-                    out.println(clientInput.toUpperCase());  // response with capitalized string
+                    out.println(clientInput.toUpperCase());  // responding with capitalized string
                 }
             }
             System.out.println("Client #" + clientNumber + " disconnected.");
